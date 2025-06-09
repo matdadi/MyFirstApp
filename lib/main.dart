@@ -70,13 +70,21 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             Text(
               'Your fortune is:',
-            ),
-            Card(
-              child: Text(
-                _currentFortune,
-                style: Theme.of(context).textTheme.headlineMedium,
+              style: TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.bold,
               ),
             ),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  _currentFortune,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+            ),
+            ElevatedButton(onPressed: _randomFortune, child: Text('Button',),)
           ],
         ),
       ),
