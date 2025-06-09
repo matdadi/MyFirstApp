@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
 
 void main() {
   runApp(const MyApp());
@@ -26,8 +27,6 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   MyHomePage({super.key});
 
-  String _currentFortune = "";
-
   // This widget is the home page of your application.
 
   @override
@@ -35,13 +34,13 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  String _currentFortune = '';
 
   final _fortuneList = [
-    "A life built on integrity will always stand strong, no matter the winds of change.",
+    "A life built on integrity",
     "Your true north is found in upholding your values, even when no one is watching.",
     "The quiet strength of honesty will open doors that cunning cannot",
-    "Integrity is not a destination, but a constant journey of right choices.",
+    "Integrity is not a destination",
     "A clear conscience is a treasure more valuable than gold.",
     "When you act with integrity, you plant seeds of trust that will bloom beautifully.",
     "The path of least resistance often leads away from your truest self; choose integrity instead.",
@@ -50,9 +49,11 @@ class _MyHomePageState extends State<MyHomePage> {
     "The deepest peace comes from knowing you have lived a life of unwavering truth."
   ];
 
-  void _incrementCounter() {
+  void _randomFortune() {
+    var random = Random();
+    int fortune = random.nextInt(_fortuneList.length);
     setState(() {
-      _counter++;
+      _currentFortune = _fortuneList[fortune];
     });
   }
 
@@ -70,15 +71,17 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               'Your fortune is:',
             ),
-            Text(
-              '${_fortuneList[_counter % _fortuneList.length]}',
-              style: Theme.of(context).textTheme.headlineMedium,
+            Card(
+              child: Text(
+                _currentFortune,
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
+        onPressed: _randomFortune,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
