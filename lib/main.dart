@@ -34,7 +34,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String _currentFortune = '';
+  String _currentFortune = ':)';
 
   final _fortuneList = [
     "A life built on integrity",
@@ -60,21 +60,12 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text("Flutter Demo Home Page"),
-      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 16,
           children: <Widget>[
-            Text(
-              'Your fortune is:',
-              style: TextStyle(
-                fontSize: 19,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            Image.asset("asset/image/fortune_cookie.png", width: 200, height: 200, fit: BoxFit.cover,),
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -84,15 +75,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ),
-            ElevatedButton(onPressed: _randomFortune, child: Text('Button',),)
+            ElevatedButton(onPressed: _randomFortune, child: Text('Click for fortune',),)
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _randomFortune,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
