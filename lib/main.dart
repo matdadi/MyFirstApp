@@ -1,27 +1,86 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-Future<QuranAPI> fetchAyah() async {
-  String url = 'https://api.alquran.cloud/v1/ayah/114:1/id.muntakhab';
+Future<AyahResponse> fetchAyahResponse() async {
+  String url = 'https://api.alquran.cloud/v1/ayah/114:2/id.muntakhab';
   final response = await http.get(
     Uri.parse(url),
   );
-  
+
   if (response.statusCode == 200) {
-    print(response.statusCode);
-    return QuranAPI.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    print(jsonDecode(response.body));
+    return AyahResponse.fromJson(
+      jsonDecode(response.body),
+    );
   } else {
-    print(response.statusCode);
-    throw Exception('Failed to fetch Ayah.');
+    throw Exception('Failed to fetch AyahResponse.');
   }
+}
+
+class Edition {
+  final String identifier;
+  final String language;
+  final String name;
+  final String englishName;
+  final String format;
+  final String type;
+  final String direction;
+
+  Edition({
+    required this.identifier,
+    required this.language,
+    required this.name,
+    required this.englishName,
+    required this.format,
+    required this.type,
+    required this.direction,
+  });
+
+  factory Edition.fromJson(Map<String, dynamic> json) => Edition(
+        identifier: json['identifier'],
+        language: json['language'],
+        name: json['name'],
+        englishName: json['englishName'],
+        format: json['format'],
+        type: json['type'],
+        direction: json['direction'],
+      );
+}
+
+class Surah {
+  final int number;
+  final String name;
+  final String englishName;
+  final String englishNameTranslation;
+  final int numberOfAyahs;
+  final String revelationType;
+
+  Surah({
+    required this.number,
+    required this.name,
+    required this.englishName,
+    required this.englishNameTranslation,
+    required this.numberOfAyahs,
+    required this.revelationType,
+  });
+
+  factory Surah.fromJson(Map<String, dynamic> json) => Surah(
+        number: json['number'],
+        name: json['name'],
+        englishName: json['englishName'],
+        englishNameTranslation: json['englishNameTranslation'],
+        numberOfAyahs: json['numberOfAyahs'],
+        revelationType: json['revelationType'],
+      );
 }
 
 class AyahData {
   final int number;
   final String text;
+  final Edition edition;
+  final Surah surah;
   final int numberInSurah;
   final int juz;
   final int manzil;
@@ -30,73 +89,51 @@ class AyahData {
   final int hizbQuarter;
   final bool sajda;
 
-  const AyahData({
+  AyahData({
     required this.number,
     required this.text,
+    required this.edition,
+    required this.surah,
     required this.numberInSurah,
     required this.juz,
     required this.manzil,
     required this.page,
     required this.ruku,
     required this.hizbQuarter,
-    required this.sajda
+    required this.sajda,
   });
 
-  factory AyahData.fromJson(Map<String, dynamic> json) {
-    return switch (json) {
-      {
-      'number': int number,
-      'text': String text,
-      'numberInSurah': int numberInSurah,
-      'juz': int juz,
-      'manzil': int manzil,
-      'page': int page,
-      'ruku': int ruku,
-      'hizbQuarter': int hizbQuarter,
-      'sajda': bool sajda
-      } =>
-          AyahData(
-              number: number,
-              text: text,
-              numberInSurah: numberInSurah,
-              juz: juz,
-              manzil: manzil,
-              page: page,
-              ruku: ruku,
-              hizbQuarter: hizbQuarter,
-              sajda: sajda
-          ),
-      _ => throw const FormatException('Failed to load ayah.'),
-    };
-  }
+  factory AyahData.fromJson(Map<String, dynamic> json) => AyahData(
+        number: json['number'],
+        text: json['text'],
+        edition: Edition.fromJson(json['edition']),
+        surah: Surah.fromJson(json['surah']),
+        numberInSurah: json['numberInSurah'],
+        juz: json['juz'],
+        manzil: json['manzil'],
+        page: json['page'],
+        ruku: json['ruku'],
+        hizbQuarter: json['hizbQuarter'],
+        sajda: json['sajda'],
+      );
 }
 
-class QuranAPI {
+class AyahResponse {
   final int code;
   final String status;
   final AyahData data;
 
-  const QuranAPI(
-  {
+  AyahResponse({
     required this.code,
     required this.status,
-    required this.data
+    required this.data,
   });
 
-  factory QuranAPI.fromJson(Map<String, dynamic> json) {
-    return switch (json) {
-      {
-        'code': int code,
-        'status': String status,
-        'data': AyahData data
-      } => QuranAPI(
-          code: code,
-          status: status,
-          data: data
-      ),
-      _ => throw const FormatException('Failed to load QuranAPI.'),
-    };
-  }
+  factory AyahResponse.fromJson(Map<String, dynamic> json) => AyahResponse(
+        code: json['code'],
+        status: json['status'],
+        data: AyahData.fromJson(json['data']),
+      );
 }
 
 void main() {
@@ -113,7 +150,7 @@ class MyApp extends StatelessWidget {
       title: 'Fortune cookies app',
       theme: ThemeData(
         // This is the theme of your application.
-        
+
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
@@ -123,7 +160,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({super.key});
+  const MyHomePage({super.key});
 
   // This widget is the home page of your application.
 
@@ -132,62 +169,67 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String _currentFortune = ':)';
-  late Future<QuranAPI> futureAyah;
+  late Future<AyahResponse> ayahText;
 
-  final _fortuneList = [
-    "A life built on integrity",
-    "Your true north is found in upholding your values, even when no one is watching.",
-    "The quiet strength of honesty will open doors that cunning cannot",
-    "Integrity is not a destination",
-    "A clear conscience is a treasure more valuable than gold.",
-    "When you act with integrity, you plant seeds of trust that will bloom beautifully.",
-    "The path of least resistance often leads away from your truest self; choose integrity instead.",
-    "Let your actions speak louder than words, especially when they speak of your character.",
-    "In every decision, big or small, let integrity be your guiding star.",
-    "The deepest peace comes from knowing you have lived a life of unwavering truth."
-  ];
-
-  void _randomFortune() {
-    var random = Random();
-    int fortune = random.nextInt(_fortuneList.length);
-    setState(() {
-      _currentFortune = _fortuneList[fortune];
-    });
-  }
-  
   @override
   void initState() {
     super.initState();
-    futureAyah = fetchAyah();
+    ayahText = fetchAyahResponse();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          spacing: 16,
-          children: <Widget>[
-            Image.asset("asset/image/fortune_cookie.png", width: 200, height: 200, fit: BoxFit.cover,),
-            Card(
-              child: FutureBuilder<QuranAPI>(
-                builder: (context, key) {
-                  return Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      key.data!.data.text,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  );
-                }, future: null,
+      body: Builder(builder: (context) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 16,
+            children: <Widget>[
+              Image.asset(
+                "asset/image/quranVector.png",
+                width: 200,
+                height: 200,
+                fit: BoxFit.cover,
               ),
-            ),
-            ElevatedButton(onPressed: _randomFortune, child: Text('Click for fortune',),)
-          ],
-        ),
-      ),
+              FutureBuilder<AyahResponse>(
+                  future: ayahText,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Center(
+                        child: Text('Error: ${snapshot.error}'),
+                      );
+                    } else if (snapshot.hasData) {
+                      return Card(
+                          child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          snapshot.data!.data.text,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ));
+                    } else {
+                      return const Center(
+                        child: Text('No data'),
+                      );
+                    }
+                  }),
+              ElevatedButton(
+                onPressed: () async {
+                  await fetchAyahResponse();
+                },
+                child: Text(
+                  'Read',
+                ),
+              )
+            ],
+          ),
+        );
+      }),
     );
   }
 }
